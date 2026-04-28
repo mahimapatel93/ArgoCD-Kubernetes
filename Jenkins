@@ -31,17 +31,17 @@ pipeline {
         }
 
         stage("Update Files") {
-            steps {
-                sh """
-                    echo "-------- Updating File Content --------"
-                    cd "${params.App_Name}"
+         steps {
+              sh """
+                 echo "-------- Updating File Content --------"
+                 cd ${App_Name}
 
-                    sed -i 's/image:.*/image: dockerwithmahi\\/datastore:${params.App_Version}/g' "${params.App_Name}".yaml
+                 sed -i "s|image:.*|image: dockerwithmahi/datastore:${App_Version}|g" ${App_Name}.yaml
 
-                    echo "-------- File Content Updated Successfully --------"
-                """
-            }
-        }
+                echo "-------- File Content Updated Successfully --------"
+            """
+         }
+      }
 
         stage("GitHub Push") {
             steps {
