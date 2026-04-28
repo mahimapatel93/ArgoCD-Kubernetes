@@ -1,61 +1,60 @@
 pipeline {
-    agent any
+agent any
 
-    environment {
-        GITHUB_TOKEN = credentials("github-token")
-    }
+environment {
+    GITHUB_TOKEN = credentials("github-token")
+}
 
-    parameters {
-        string(
-            name: "App_Name",
-            description: "application name that need to be deployed"
-        )
-        string(
-            name: "App_Version",
-            description: "version of the application that need to be deployed"
-        )
-    }
+parameters {
+    string(
+        name: "App_Name",
+        description: "application name that need to be deployed"
+    )
+    string(
+        name: "App_Version",
+        description: "version of the application that need to be deployed"
+    )
+}
 
-    stages {
+stages {
 
-        stage("Checkout") {
-            steps {
-                checkout scmGit(
-                    branches: [[name: '*/main']],
-                    extensions: [],
-                    userRemoteConfigs: [[
-                        url: 'https://github.com/mahimapatel93/ArgoCD-Kubernetes.git'
-                    ]]
-                )
-            }
+    stage("Checkout") {
+        steps {
+            checkout scmGit(
+                branches: [[name: '*/main']],
+                extensions: [],
+                userRemoteConfigs: [[
+                    url: 'https://github.com/mahimapatel93/ArgoCD-Kubernetes.git'
+                ]]
+            )
         }
+    }
 
-        stage("Update Files") {
-         steps {
-              sh """
-                 echo "-------- Updating File Content --------"
-                 cd ${App_Name}
+    stage("Update Files") {
+        steps {
+            sh """
+                echo "-------- Updating File Content --------"
+                cd "${params.App_Name}"
 
-                 sed -i "s|image:.*|image: dockerwithmahi/datastore:${App_Version}|g" ${App_Name}.yaml
+                sed -i 's/image:.*/image: dockerwithmahi\\/datastore:${params.App_Version}/g' "${params.App_Name}".yaml
 
                 echo "-------- File Content Updated Successfully --------"
             """
-         }
-      }
+        }
+    }
 
-        stage("GitHub Push") {
-            steps {
-                sh """
-                    echo "-------- Pushing Changes To GitHub --------"
+    stage("GitHub Push") {
+        steps {
+            sh """
+                echo "-------- Pushing Changes To GitHub --------"
 
-                    git add .
-                    git commit -am "docker image updated" || echo "No changes to commit"
+                git add .
+                git commit -am "docker image updated" || echo "No changes to commit"
 
-                    git push https://$GITHUB_TOKEN@github.com/mahimapatel93/ArgoCD-Kubernetes.git HEAD:main
+                git push https://$GITHUB_TOKEN@github.com/mahimapatel93/ArgoCD-Kubernetes.git HEAD:main
 
-                    echo "-------- Pushed Changes Successfully --------"
-                """
-            }
+                echo "-------- Pushed Changes Successfully --------"
+            """
         }
     }
 }
